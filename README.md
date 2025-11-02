@@ -1,6 +1,6 @@
-# 🎵 MP3 Player Offline
+# 🎵 DJMIXPLYR - MP3 Player Offline
 
-Player MP3 estático e offline, desenvolvido em HTML/JavaScript com atualização automática via Python. Interface moderna e minimalista, totalmente funcional sem necessidade de servidor.
+**DJMIXPLYR** é um player MP3 estático e offline, desenvolvido em HTML/JavaScript com atualização automática via Python. Interface moderna e minimalista, totalmente funcional sem necessidade de servidor.
 
 ## 📋 Características
 
