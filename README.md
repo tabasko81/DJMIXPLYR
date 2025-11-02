@@ -1,148 +1,147 @@
-# 🎵 DJMIXPLYR - MP3 Player Offline
+# 🎵 DJMIXPLYR - Offline MP3 Player
 
-**DJMIXPLYR** é um player MP3 estático e offline, desenvolvido em HTML/JavaScript com atualização automática via Python. Interface moderna e minimalista, totalmente funcional sem necessidade de servidor.
+**DJMIXPLYR** is a static offline MP3 player, developed in HTML/JavaScript with automatic updates via Python. Modern and minimalist interface, fully functional without a server.
 
-## 📋 Características
+## 📋 Features
 
-- ✅ **Totalmente Offline** - Funciona sem internet ou servidor
-- ✅ **Interface Moderna** - Design minimalista e responsivo
-- ✅ **Metadados ID3** - Extrai título, artista e capa dos álbuns
-- ✅ **Controles Completos** - Play, pause, seek, volume e navegação
-- ✅ **Atualização Automática** - Script Python regenera o HTML facilmente
+- ✅ **Fully Offline** - Works without internet or server
+- ✅ **Modern Interface** - Minimalist and responsive design
+- ✅ **ID3 Metadata** - Extracts title, artist and album covers
+- ✅ **Complete Controls** - Play, pause, seek, volume and navigation
+- ✅ **Automatic Updates** - Python script regenerates HTML easily
 
-## 🚀 Instalação
+## 🚀 Installation
 
-### Pré-requisitos
+### Prerequisites
 
-- Python 3.6 ou superior
-- Navegador moderno (Chrome, Firefox, Edge - últimas 2 versões)
+- Python 3.6 or higher
+- Modern browser (Chrome, Firefox, Edge - latest 2 versions)
 
-### 1. Instalar Dependências Python
+### 1. Install Python Dependencies
 
 ```bash
 pip install mutagen
 ```
 
-Ou se utilizar pip3:
+Or if using pip3:
 
 ```bash
 pip3 install mutagen
 ```
 
-### 2. Estrutura de Pastas
+### 2. Folder Structure
 
-O projeto deve ter a seguinte estrutura:
+The project should have the following structure:
 
 ```
 DJMIXPLYR/
-├── index.html          # Player HTML (será atualizado automaticamente)
-├── update_player.py    # Script de atualização
-├── README.md          # Este ficheiro
-└── mp3/               # Pasta com os ficheiros MP3
-    ├── musica1.mp3
-    ├── musica2.mp3
+├── index.html          # HTML Player (will be updated automatically)
+├── update_player.py    # Update script
+├── README.md          # This file
+└── mp3/               # Folder with MP3 files
+    ├── song1.mp3
+    ├── song2.mp3
     └── ...
 ```
 
-### 3. Adicionar Ficheiros MP3
+### 3. Add MP3 Files
 
-Coloque os seus ficheiros MP3 na pasta `mp3/`. Se a pasta não existir, o script criá-la-á automaticamente.
+Place your MP3 files in the `mp3/` folder. If the folder doesn't exist, the script will create it automatically.
 
-## 📖 Utilização
+## 📖 Usage
 
-### Atualizar o Player
+### Update the Player
 
-Sempre que adicionar, remover ou modificar ficheiros MP3 na pasta `mp3/`, execute:
+Whenever you add, remove or modify MP3 files in the `mp3/` folder, run:
 
 ```bash
 python update_player.py
 ```
 
-Ou:
+Or:
 
 ```bash
 python3 update_player.py
 ```
 
-O script irá:
-1. Escanear a pasta `mp3/` em busca de ficheiros MP3
-2. Extrair metadados ID3 (título, artista, capa)
-3. Atualizar o `index.html` com as novas faixas
+The script will:
+1. Scan the `mp3/` folder for MP3 files
+2. Extract ID3 metadata (title, artist, cover)
+3. Update `index.html` with new tracks
 
-### Abrir o Player
+### Open the Player
 
-Abra o ficheiro `index.html` no seu navegador. Pode fazê-lo de várias formas:
+Open the `index.html` file in your browser. You can do this in several ways:
 
-- **Duplo clique** no `index.html`
-- **Arrastar e largar** o ficheiro para o navegador
-- **Clicar com botão direito** → "Abrir com" → Navegador
+- **Double click** on `index.html`
+- **Drag and drop** the file into the browser
+- **Right click** → "Open with" → Browser
 
-## 🎮 Controlos
+## 🎮 Controls
 
 - **▶/⏸** - Play/Pause
-- **⏮** - Faixa anterior
-- **⏭** - Faixa seguinte
-- **Barra de progresso** - Clique para saltar para uma posição
-- **Slider de volume** - Ajustar volume
-- **Lista de faixas** - Clique numa faixa para a tocar
+- **⏮** - Previous track
+- **⏭** - Next track
+- **Progress bar** - Click to jump to a position
+- **Volume slider** - Adjust volume
+- **Track list** - Click a track to play it
 
-## 🔧 Funcionalidades Técnicas
+## 🔧 Technical Features
 
-### Metadados Suportados
+### Supported Metadata
 
-O script extrai automaticamente:
-- **Título** (TIT2, TITLE, ©nam)
-- **Artista** (TPE1, ARTIST, ©ART)
-- **Álbum** (TALB, ALBUM, ©alb)
-- **Capa do Álbum** (APIC, PIC, covr)
+The script automatically extracts:
+- **Title** (TIT2, TITLE, ©nam)
+- **Artist** (TPE1, ARTIST, ©ART)
+- **Album** (TALB, ALBUM, ©alb)
+- **Album Cover** (APIC, PIC, covr)
 
-Se os metadados não estiverem disponíveis, o player mostra o nome do ficheiro.
+If metadata is not available, the player shows the filename.
 
-### Capas de Álbum
+### Album Covers
 
-As capas são extraídas dos ficheiros MP3 e incorporadas no HTML como imagens base64, permitindo que funcionem totalmente offline.
+Covers are extracted from MP3 files and embedded in HTML as base64 images, allowing them to work completely offline.
 
 ### Fallbacks
 
-- Se não houver metadados: mostra o nome do ficheiro
-- Se não houver capa: mostra ícone 🎵
-- Se não houver ficheiros: mostra mensagem informativa
+- If no metadata: shows the filename
+- If no cover: shows 🎵 icon
+- If no files: shows informative message
 
-## 📝 Notas
+## 📝 Notes
 
-- O player funciona apenas com ficheiros locais (caminhos relativos `mp3/...`)
-- Para funcionar completamente offline, todos os ficheiros MP3 devem estar na pasta `mp3/`
-- O HTML é regenerado sempre que executar `update_player.py`
-- Alterações manuais no HTML podem ser perdidas ao executar o script
+- The player only works with local files (relative paths `mp3/...`)
+- To work completely offline, all MP3 files must be in the `mp3/` folder
+- HTML is regenerated every time you run `update_player.py`
+- Manual changes to HTML may be lost when running the script
 
-## 🐛 Resolução de Problemas
+## 🐛 Troubleshooting
 
-### "Nenhum ficheiro MP3 encontrado"
+### "No MP3 files found"
 
-Certifique-se de que:
-- Os ficheiros têm extensão `.mp3` ou `.MP3`
-- Os ficheiros estão na pasta `mp3/` (no mesmo diretório do script)
+Make sure:
+- Files have `.mp3` or `.MP3` extension
+- Files are in the `mp3/` folder (same directory as the script)
 
-### Metadados não aparecem
+### Metadata doesn't appear
 
-Alguns ficheiros MP3 podem não ter metadados ID3. O player mostrará o nome do ficheiro nestes casos.
+Some MP3 files may not have ID3 metadata. The player will show the filename in these cases.
 
-### Capas não aparecem
+### Covers don't appear
 
-Nem todos os ficheiros MP3 contêm capas incorporadas. O player mostrará um ícone padrão (🎵) quando não houver capa.
+Not all MP3 files contain embedded covers. The player will show a default icon (🎵) when there's no cover.
 
-### Erro ao importar mutagen
+### Error importing mutagen
 
-Certifique-se de que instalou o mutagen:
+Make sure you installed mutagen:
 ```bash
 pip install mutagen
 ```
 
-## 📄 Licença
+## 📄 License
 
-Projeto livre para uso pessoal.
+Free project for personal use.
 
 ---
 
-**Desenvolvido com ❤️ para música offline**
-
+**Developed with ❤️ for offline music**

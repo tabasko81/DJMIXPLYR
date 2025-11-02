@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -368,15 +368,15 @@
                     🎵
                 </div>
                 <div class="now-playing-info">
-                    <div class="now-playing-title" id="nowPlayingTitle">Seleciona uma faixa</div>
+                    <div class="now-playing-title" id="nowPlayingTitle">Select a track</div>
                     <div class="now-playing-artist" id="nowPlayingArtist">—</div>
                 </div>
             </div>
 
             <div class="audio-controls">
-                <button class="control-btn" id="prevBtn" title="Anterior">⏮</button>
+                <button class="control-btn" id="prevBtn" title="Previous">⏮</button>
                 <button class="control-btn play-pause" id="playPauseBtn" title="Play/Pause">▶</button>
-                <button class="control-btn" id="nextBtn" title="Seguinte">⏭</button>
+                <button class="control-btn" id="nextBtn" title="Next">⏭</button>
                 
                 <div class="progress-container" id="progressContainer">
                     <div class="progress-bar" id="progressBar"></div>
@@ -407,7 +407,7 @@
     <audio id="audioPlayer" preload="metadata"></audio>
 
     <script>
-        // PLAYLIST_DATA será substituído pelo update_player.py
+        // PLAYLIST_DATA will be replaced by update_player.py
         const PLAYLIST_DATA = []
 
         const audioPlayer = document.getElementById('audioPlayer');
@@ -427,14 +427,14 @@
 
         let currentTrackIndex = -1;
 
-        // Renderizar playlist
+        // Render playlist
         function renderPlaylist() {
             if (PLAYLIST_DATA.length === 0) {
                 playlist.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🎵</div>
-                        <p>Nenhuma faixa encontrada</p>
-                        <p style="margin-top: 10px; font-size: 12px;">Execute update_player.py para adicionar ficheiros MP3</p>
+                        <p>No tracks found</p>
+                        <p style="margin-top: 10px; font-size: 12px;">Run update_player.py to add MP3 files</p>
                     </div>
                 `;
                 return;
@@ -449,13 +449,13 @@
                     </div>
                     <div class="track-info">
                         <div class="track-title">${track.title || track.filename}</div>
-                        <div class="track-artist">${track.artist || 'Artista Desconhecido'}</div>
+                        <div class="track-artist">${track.artist || 'Unknown Artist'}</div>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Formatar tempo
+        // Format time
         function formatTime(seconds) {
             if (isNaN(seconds)) return '0:00';
             const mins = Math.floor(seconds / 60);
@@ -463,7 +463,7 @@
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // Carregar e tocar faixa
+        // Load and play track
         function playTrack(index) {
             if (index < 0 || index >= PLAYLIST_DATA.length) return;
 
@@ -478,10 +478,10 @@
             updatePlaylistUI();
         }
 
-        // Atualizar informação da faixa atual
+        // Update current track information
         function updateNowPlaying(track) {
             nowPlayingTitle.textContent = track.title || track.filename;
-            nowPlayingArtist.textContent = track.artist || 'Artista Desconhecido';
+            nowPlayingArtist.textContent = track.artist || 'Unknown Artist';
             
             if (track.cover) {
                 nowPlayingCover.innerHTML = `<img src="${track.cover}" alt="Cover">`;
@@ -490,7 +490,7 @@
             }
         }
 
-        // Atualizar UI da playlist
+        // Update playlist UI
         function updatePlaylistUI() {
             document.querySelectorAll('.track-item').forEach((item, index) => {
                 if (index === currentTrackIndex) {
@@ -560,7 +560,7 @@
             playPauseBtn.textContent = '▶';
         });
 
-        // Próxima faixa ao terminar
+        // Next track when finished
         audioPlayer.addEventListener('ended', () => {
             if (PLAYLIST_DATA.length > 0) {
                 const newIndex = currentTrackIndex >= PLAYLIST_DATA.length - 1 ? 0 : currentTrackIndex + 1;
@@ -568,10 +568,10 @@
             }
         });
 
-        // Tornar playTrack global para onclick
+        // Make playTrack global for onclick
         window.playTrack = playTrack;
 
-        // Inicializar
+        // Initialize
         renderPlaylist();
     </script>
 </body>

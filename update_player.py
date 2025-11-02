@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script para atualizar o player MP3 offline.
-Escanha a pasta mp3/, extrai metadados ID3 e regenera o index.html.
+Script to update the offline MP3 player.
+Scans the mp3/ folder, extracts ID3 metadata and regenerates index.html.
 """
 
 import json
@@ -10,22 +10,22 @@ from pathlib import Path
 from mutagen import File
 from mutagen.id3 import ID3NoHeaderError
 
-# Configurações
+# Configuration
 MP3_FOLDER = Path('mp3')
 HTML_FILE = Path('index.html')
 
 
 def extract_cover_art(mp3_file):
     """
-    Extrai a capa do álbum do ficheiro MP3 e retorna como base64 data URI.
-    Retorna None se não houver capa.
+    Extracts album cover from MP3 file and returns as base64 data URI.
+    Returns None if no cover is found.
     """
     try:
         audio_file = File(str(mp3_file))
         if audio_file is None:
             return None
 
-        # Tentar extrair imagem de diferentes tags
+        # Try to extract image from different tags
         if hasattr(audio_file, 'tags') and audio_file.tags:
             for tag in ['APIC:', 'APIC', 'PIC', 'covr']:
                 if tag in audio_file.tags:
@@ -34,7 +34,7 @@ def extract_cover_art(mp3_file):
                         artwork = artwork[0]
                     if hasattr(artwork, 'data'):
                         image_data = artwork.data
-                        # Detectar tipo MIME
+                        # Detect MIME type
                         mime_type = 'image/jpeg'
                         if image_data[:2] == b'\xff\xd8':
                             mime_type = 'image/jpeg'
@@ -42,7 +42,7 @@ def extract_cover_art(mp3_file):
                             mime_type = 'image/png'
                         elif image_data[:4] == b'GIF8':
                             mime_type = 'image/gif'
-                        # Converter para base64 data URI
+                        # Convert to base64 data URI
                         b64_data = base64.b64encode(image_data).decode('utf-8')
                         return f"data:{mime_type};base64,{b64_data}"
                     elif isinstance(artwork, bytes):
@@ -50,7 +50,7 @@ def extract_cover_art(mp3_file):
                         b64_data = base64.b64encode(artwork).decode('utf-8')
                         return f"data:image/jpeg;base64,{b64_data}"
 
-        # Tentar com mutagen ID3
+        # Try with mutagen ID3
         try:
             from mutagen.id3 import ID3
             id3 = ID3(str(mp3_file))
@@ -66,15 +66,15 @@ def extract_cover_art(mp3_file):
             pass
 
     except Exception as e:
-        print(f"Erro ao extrair capa de {mp3_file.name}: {e}")
+        print(f"Error extracting cover from {mp3_file.name}: {e}")
     
     return None
 
 
 def extract_metadata(mp3_file):
     """
-    Extrai metadados do ficheiro MP3.
-    Retorna dicionário com título, artista, capa e caminho.
+    Extracts metadata from MP3 file.
+    Returns dictionary with title, artist, cover and path.
     """
     try:
         audio_file = File(str(mp3_file))
@@ -90,11 +90,11 @@ def extract_metadata(mp3_file):
             'path': f"mp3/{mp3_file.name}"
         }
 
-        # Extrair título, artista e álbum
+        # Extract title, artist and album
         if hasattr(audio_file, 'tags') and audio_file.tags:
             tags = audio_file.tags
             
-            # Título
+            # Title
             for key in ['TIT2', 'TITLE', '©nam']:
                 if key in tags:
                     value = tags[key]
@@ -104,7 +104,7 @@ def extract_metadata(mp3_file):
                         metadata['title'] = str(value).strip()
                     break
 
-            # Artista
+            # Artist
             for key in ['TPE1', 'ARTIST', '©ART']:
                 if key in tags:
                     value = tags[key]
@@ -114,7 +114,7 @@ def extract_metadata(mp3_file):
                         metadata['artist'] = str(value).strip()
                     break
 
-            # Álbum
+            # Album
             for key in ['TALB', 'ALBUM', '©alb']:
                 if key in tags:
                     value = tags[key]
@@ -124,7 +124,7 @@ def extract_metadata(mp3_file):
                         metadata['album'] = str(value).strip()
                     break
 
-        # Extrair capa
+        # Extract cover
         cover = extract_cover_art(mp3_file)
         if cover:
             metadata['cover'] = cover
@@ -132,7 +132,7 @@ def extract_metadata(mp3_file):
         return metadata
 
     except Exception as e:
-        print(f"Erro ao processar {mp3_file.name}: {e}")
+        print(f"Error processing {mp3_file.name}: {e}")
         return {
             'filename': mp3_file.stem,
             'title': None,
@@ -145,7 +145,7 @@ def extract_metadata(mp3_file):
 
 def get_existing_tracks():
     """
-    Lê as faixas existentes do HTML e retorna como lista.
+    Reads existing tracks from HTML and returns as a list.
     """
     if not HTML_FILE.exists():
         return []
@@ -154,73 +154,73 @@ def get_existing_tracks():
         with open(HTML_FILE, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Procurar pela constante PLAYLIST_DATA
+        # Find PLAYLIST_DATA constant
         start_idx = content.find('const PLAYLIST_DATA')
         if start_idx == -1:
             return []
         
-        # Encontrar o início do array JSON
+        # Find the start of JSON array
         array_start = content.find('[', start_idx)
         if array_start == -1:
             return []
         
-        # Encontrar o fim do array
+        # Find the end of array
         array_end = content.find('];', array_start)
         if array_end == -1:
             return []
         
-        # Extrair o JSON
+        # Extract JSON
         json_str = content[array_start:array_end + 1]
         
-        # Tentar fazer parse do JSON
+        # Try to parse JSON
         try:
             existing_tracks = json.loads(json_str)
             return existing_tracks if isinstance(existing_tracks, list) else []
         except json.JSONDecodeError:
             return []
     except Exception as e:
-        print(f"Aviso: Erro ao ler faixas existentes: {e}")
+        print(f"Warning: Error reading existing tracks: {e}")
         return []
 
 
 def get_existing_playlist():
     """
-    Lê a playlist atual do HTML e retorna um conjunto de paths normalizados.
+    Reads current playlist from HTML and returns a set of normalized paths.
     """
     existing_tracks = get_existing_tracks()
     existing_paths = set()
     for track in existing_tracks:
         if 'path' in track:
-            # Normalizar path para comparação (lowercase)
+            # Normalize path for comparison (lowercase)
             existing_paths.add(track['path'].lower().replace('\\', '/'))
     return existing_paths
 
 
 def scan_mp3_files(existing_paths=None):
     """
-    Escaneia a pasta mp3/ e retorna lista de metadados.
-    Evita duplicados (importante no Windows que é case-insensitive).
-    Se existing_paths for fornecido, apenas processa ficheiros novos.
+    Scans the mp3/ folder and returns list of metadata.
+    Avoids duplicates (important on Windows which is case-insensitive).
+    If existing_paths is provided, only processes new files.
     """
     if existing_paths is None:
         existing_paths = set()
     
     if not MP3_FOLDER.exists():
-        print(f"Pasta {MP3_FOLDER} não encontrada. A criá-la...")
+        print(f"Folder {MP3_FOLDER} not found. Creating it...")
         MP3_FOLDER.mkdir(exist_ok=True)
-        print(f"Pasta {MP3_FOLDER} criada. Adicione ficheiros MP3 e execute novamente.")
+        print(f"Folder {MP3_FOLDER} created. Add MP3 files and run again.")
         return []
 
-    # Coletar todos os ficheiros MP3 e evitar duplicados
+    # Collect all MP3 files and avoid duplicates
     mp3_files_dict = {}  # {lowercase_name: Path}
     
-    # Procurar por todos os ficheiros .mp3 (case-insensitive)
+    # Search for all .mp3 files (case-insensitive)
     for mp3_file in MP3_FOLDER.glob('*.mp3'):
         name_lower = mp3_file.name.lower()
         if name_lower not in mp3_files_dict:
             mp3_files_dict[name_lower] = mp3_file
     
-    # Também procurar por .MP3 (caso haja extensões em maiúsculas)
+    # Also search for .MP3 (in case there are uppercase extensions)
     for mp3_file in MP3_FOLDER.glob('*.MP3'):
         name_lower = mp3_file.name.lower()
         if name_lower not in mp3_files_dict:
@@ -229,50 +229,50 @@ def scan_mp3_files(existing_paths=None):
     mp3_files = sorted(mp3_files_dict.values(), key=lambda x: x.name.lower())
     
     if not mp3_files:
-        print(f"Nenhum ficheiro MP3 encontrado em {MP3_FOLDER}")
+        print(f"No MP3 files found in {MP3_FOLDER}")
         return []
 
-    print(f"Encontrados {len(mp3_files)} ficheiro(s) MP3")
+    print(f"Found {len(mp3_files)} MP3 file(s)")
     
     new_tracks = []
     skipped_count = 0
     
     for mp3_file in mp3_files:
-        # Verificar se já existe na playlist
+        # Check if already exists in playlist
         track_path = f"mp3/{mp3_file.name}"
         track_path_normalized = track_path.lower().replace('\\', '/')
         
         if track_path_normalized in existing_paths:
-            print(f"Já existe na playlist: {mp3_file.name} (ignorado)")
+            print(f"Already in playlist: {mp3_file.name} (ignored)")
             skipped_count += 1
             continue
         
-        print(f"Novo ficheiro encontrado: {mp3_file.name}")
+        print(f"New file found: {mp3_file.name}")
         metadata = extract_metadata(mp3_file)
         if metadata:
             new_tracks.append(metadata)
     
     if skipped_count > 0:
-        print(f"\n{skipped_count} ficheiro(s) já existem na playlist (ignorados)")
+        print(f"\n{skipped_count} file(s) already in playlist (ignored)")
     
     return new_tracks
 
 
 def get_current_mp3_files():
     """
-    Retorna um conjunto de paths normalizados dos ficheiros MP3 atualmente na pasta.
+    Returns a set of normalized paths of MP3 files currently in the folder.
     """
     if not MP3_FOLDER.exists():
         return set()
     
     current_files = set()
     
-    # Procurar por todos os ficheiros .mp3
+    # Search for all .mp3 files
     for mp3_file in MP3_FOLDER.glob('*.mp3'):
         path_normalized = f"mp3/{mp3_file.name}".lower().replace('\\', '/')
         current_files.add(path_normalized)
     
-    # Procurar por .MP3 também
+    # Search for .MP3 as well
     for mp3_file in MP3_FOLDER.glob('*.MP3'):
         path_normalized = f"mp3/{mp3_file.name}".lower().replace('\\', '/')
         current_files.add(path_normalized)
@@ -282,21 +282,21 @@ def get_current_mp3_files():
 
 def update_html(new_tracks):
     """
-    Atualiza o index.html adicionando novas faixas no topo da playlist
-    e removendo faixas cujos ficheiros já não existem.
-    Substitui o conteúdo de PLAYLIST_DATA de forma robusta.
+    Updates index.html by adding new tracks at the top of the playlist
+    and removing tracks whose files no longer exist.
+    Replaces PLAYLIST_DATA content robustly.
     """
     if not HTML_FILE.exists():
-        print(f"Erro: {HTML_FILE} não encontrado!")
+        print(f"Error: {HTML_FILE} not found!")
         return False
 
-    # Ler faixas existentes
+    # Read existing tracks
     existing_tracks = get_existing_tracks()
     
-    # Obter ficheiros MP3 que existem atualmente na pasta
+    # Get MP3 files that currently exist in the folder
     current_files = get_current_mp3_files()
     
-    # Filtrar faixas existentes: manter apenas as que ainda têm ficheiros
+    # Filter existing tracks: keep only those that still have files
     valid_existing_tracks = []
     removed_count = 0
     
@@ -307,25 +307,25 @@ def update_html(new_tracks):
                 valid_existing_tracks.append(track)
             else:
                 removed_count += 1
-                print(f"Ficheiro removido: {track.get('filename', track['path'])}")
+                print(f"File removed: {track.get('filename', track['path'])}")
         else:
-            # Se não tiver path, manter (não deveria acontecer, mas por segurança)
+            # If no path, keep (shouldn't happen, but for safety)
             valid_existing_tracks.append(track)
     
     if removed_count > 0:
-        print(f"\n{removed_count} faixa(s) removida(s) da playlist (ficheiros não encontrados)")
+        print(f"\n{removed_count} track(s) removed from playlist (files not found)")
     
-    # Combinar: novas faixas no topo, depois as existentes válidas
+    # Combine: new tracks at top, then valid existing tracks
     all_tracks = new_tracks + valid_existing_tracks
 
-    # Ler HTML existente
+    # Read existing HTML
     with open(HTML_FILE, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
-    # Criar JSON dos dados das faixas
+    # Create JSON from track data
     tracks_json = json.dumps(all_tracks, ensure_ascii=False, indent=2)
     
-    # Encontrar a linha que contém "const PLAYLIST_DATA ="
+    # Find line containing "const PLAYLIST_DATA ="
     start_line_idx = None
     for i, line in enumerate(lines):
         if 'const PLAYLIST_DATA' in line and '=' in line:
@@ -333,11 +333,11 @@ def update_html(new_tracks):
             break
     
     if start_line_idx is None:
-        print("Erro: Não foi possível encontrar 'const PLAYLIST_DATA =' no HTML")
+        print("Error: Could not find 'const PLAYLIST_DATA =' in HTML")
         return False
     
-    # Encontrar a linha que contém "];" após a linha de início
-    # Procurar pela primeira linha após start_line_idx que contém apenas "];"
+    # Find line containing "];" after start line
+    # Search for first line after start_line_idx that contains only "];"
     end_line_idx = None
     for i in range(start_line_idx + 1, len(lines)):
         line_stripped = lines[i].strip()
@@ -346,10 +346,10 @@ def update_html(new_tracks):
             break
     
     if end_line_idx is None:
-        print("Erro: Não foi possível encontrar '];' após PLAYLIST_DATA no HTML")
+        print("Error: Could not find '];' after PLAYLIST_DATA in HTML")
         return False
     
-    # Obter a indentação da linha original
+    # Get indentation from original line
     start_line = lines[start_line_idx]
     indent = ''
     for char in start_line:
@@ -358,103 +358,103 @@ def update_html(new_tracks):
         else:
             break
     
-    # Construir o novo conteúdo
-    # Substituir tudo entre start_line_idx e end_line_idx
+    # Build new content
+    # Replace everything between start_line_idx and end_line_idx
     new_lines = lines[:start_line_idx]
     
-    # Criar JSON com indentação apropriada
-    # O json.dumps já tem indent=2
+    # Create JSON with appropriate indentation
+    # json.dumps already has indent=2
     json_lines = tracks_json.split('\n')
     
     if json_lines:
-        # Verificar se a primeira linha é apenas '[' (array vazio ou início)
+        # Check if first line is just '[' (empty array or start)
         if json_lines[0].strip() == '[':
-            # Primeira linha: const PLAYLIST_DATA = [
+            # First line: const PLAYLIST_DATA = [
             new_lines.append(f'{indent}const PLAYLIST_DATA = [\n')
-            # Começar da segunda linha do JSON
+            # Start from second line of JSON
             start_idx = 1
         else:
-            # JSON numa linha só ou formato diferente
+            # JSON in single line or different format
             new_lines.append(f'{indent}const PLAYLIST_DATA = {json_lines[0]}\n')
             start_idx = 1
         
-        # Adicionar linhas do JSON com indentação base
-        # Verificar se a última linha é ']' para fechar corretamente
+        # Add JSON lines with base indentation
+        # Check if last line is ']' to close correctly
         for i, json_line in enumerate(json_lines[start_idx:], start=start_idx):
             line_stripped = json_line.strip()
             
-            # Se for a última linha e for ']', fechar com '];'
+            # If last line and is ']', close with '];'
             if i == len(json_lines) - 1 and line_stripped == ']':
                 new_lines.append(f'{indent}];\n')
-            elif line_stripped:  # Linhas não vazias
+            elif line_stripped:  # Non-empty lines
                 new_lines.append(f'{indent}{json_line}\n')
             else:
                 new_lines.append('\n')
     else:
-        # Se não houver dados, apenas o array vazio
+        # If no data, just empty array
         new_lines.append(f'{indent}const PLAYLIST_DATA = [];\n')
     
-    # Adicionar o restante após a linha com ];
+    # Add rest after line with ];
     new_lines.extend(lines[end_line_idx + 1:])
     
-    # Escrever HTML atualizado
+    # Write updated HTML
     with open(HTML_FILE, 'w', encoding='utf-8') as f:
         f.writelines(new_lines)
 
-    print(f"HTML atualizado com {len(all_tracks)} faixa(s)")
+    print(f"HTML updated with {len(all_tracks)} track(s)")
     return True
 
 
 def main():
     """
-    Função principal.
+    Main function.
     """
-    print("=== Atualizador do Player MP3 ===\n")
+    print("=== MP3 Player Updater ===\n")
     
-    # Ler playlist existente para identificar novos ficheiros
+    # Read existing playlist to identify new files
     existing_paths = get_existing_playlist()
     existing_count = len(existing_paths)
     
     if existing_count > 0:
-        print(f"Playlist atual contém {existing_count} faixa(s)\n")
+        print(f"Current playlist contains {existing_count} track(s)\n")
     
-    # Escanear ficheiros MP3 (apenas novos)
+    # Scan MP3 files (only new ones)
     new_tracks = scan_mp3_files(existing_paths)
     
     if new_tracks:
-        print(f"\n{len(new_tracks)} nova(s) faixa(s) encontrada(s)")
+        print(f"\n{len(new_tracks)} new track(s) found")
     else:
         if existing_count == 0:
-            print("\nNenhuma faixa encontrada. Verifique se há ficheiros MP3 na pasta mp3/")
+            print("\nNo tracks found. Check if there are MP3 files in mp3/ folder")
             return
         else:
-            print("\nVerificando ficheiros removidos...")
+            print("\nChecking for removed files...")
 
-    # Atualizar HTML (adiciona novas no topo e remove ficheiros ausentes)
-    # Sempre atualizar para verificar ficheiros removidos
+    # Update HTML (adds new ones at top and removes missing files)
+    # Always update to check for removed files
     if update_html(new_tracks):
-        # Obter contagem final após atualização
+        # Get final count after update
         final_tracks = get_existing_tracks()
         final_count = len(final_tracks)
         
-        print("\n✅ Player atualizado com sucesso!")
+        print("\n✅ Player updated successfully!")
         if new_tracks:
-            print(f"Novas faixas adicionadas: {len(new_tracks)}")
+            print(f"New tracks added: {len(new_tracks)}")
         if final_count != existing_count:
             removed = existing_count - (final_count - len(new_tracks))
             if removed > 0:
-                print(f"Faixas removidas: {removed}")
-        print(f"Total de faixas na playlist: {final_count}")
+                print(f"Tracks removed: {removed}")
+        print(f"Total tracks in playlist: {final_count}")
     else:
-        print("\n❌ Erro ao atualizar o player")
+        print("\n❌ Error updating player")
 
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\nOperação cancelada pelo utilizador")
+        print("\n\nOperation cancelled by user")
     except Exception as e:
-        print(f"\n❌ Erro: {e}")
+        print(f"\n❌ Error: {e}")
         import traceback
         traceback.print_exc()
